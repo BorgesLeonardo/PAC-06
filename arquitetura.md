@@ -1,6 +1,6 @@
 # Estacione Seguro
 
-![Diagrama do Sistema Estacione Seguro](imagens/arquitetura.png)
+![Diagrama do Sistema Estacione Seguro](imagens/arquitetura.jpg)
 
 ## Visão Geral do Projeto
 
