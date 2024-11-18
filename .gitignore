@@ -1,0 +1,13 @@
+#ignorar todas as imagens 
+*.jpg
+
+
+#Ignorar todas as pastas especificas
+__pycache__/
+
+
+##Ignorar os cache
+*.pyc
+
+##ignorar o banco 
+config_bd.py
