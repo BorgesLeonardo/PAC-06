@@ -14,13 +14,34 @@
             padding: 0;
             height: 100vh;
         }
+        #video-feed {
+            display: none;
+            width: 400px;
+            height: 300px;
+            background-color: #000;
+            margin-bottom: 20px;
+        }
+        #plate-image-container {
+            width: 300px;
+            height: 200px;
+            overflow: hidden;
+            background-color: #ddd;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        #plate-image {
+            max-width: 100%;
+            height: auto;
+        }
         #image-container {
             width: 300px;
             height: 300px;
             overflow: hidden;
             border-radius: 50%;
             background-color: #ddd;
-            display: flex;
+            display: none;
             justify-content: center;
             align-items: center;
             position: relative;
@@ -30,7 +51,6 @@
             max-width: 100%;
             height: auto;
         }
-        /* Três pontinhos animados */
         #processing-dots {
             display: none;
             position: absolute;
@@ -68,6 +88,13 @@
             color: #333;
             text-align: center;
         }
+        #plate-number {
+            margin-top: 10px;
+            font-size: 20px;
+            color: #555;
+            text-align: center;
+            display: none;
+        }
         #result-icon {
             margin-top: 10px;
             width: 30px;
@@ -89,95 +116,117 @@
             text-align: center;
             display: none;
         }
+        #register-button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #3498db;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        #register-button:hover {
+            background-color: #2980b9;
+        }
     </style>
 </head>
 <body>
+    <img id="video-feed" src="" alt="Feed de Vídeo">
+    <div id="plate-image-container">
+        <img id="plate-image" src="" alt="Imagem da Placa">
+    </div>
     <div id="image-container">
         <img id="captured-image" src="" alt="Imagem Capturada">
-        <!-- Três pontinhos -->
-        <div id="processing-dots">
-            <div class="dot"></div>
-            <div class="dot"></div>
-            <div class="dot"></div>
-        </div>
     </div>
-    <div id="status-message">Por favor, aproxime-se do sensor para iniciar a captura.</div>
+    <div id="processing-dots">
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+    </div>
+    <div id="status-message">Aguardando detecção da placa do veículo.</div>
+    <div id="plate-number"></div>
     <div id="result-icon"></div>
     <div id="error-message"></div>
+    <a id="register-button" href="/register">Registrar Veículo</a>
 
     <script>
         function updateStatus() {
             fetch('/check_status')
             .then(response => response.json())
             .then(data => {
-                console.log("Dados recebidos do servidor:", data); // Adicionado para depuração
                 const img = document.getElementById('captured-image');
                 const processingDots = document.getElementById('processing-dots');
                 const resultIcon = document.getElementById('result-icon');
                 const messageEl = document.getElementById('status-message');
+                const plateNumberEl = document.getElementById('plate-number');
                 const errorMessage = document.getElementById('error-message');
+                const plateImg = document.getElementById('plate-image');
+                const plateImageContainer = document.getElementById('plate-image-container');
+                const videoFeed = document.getElementById('video-feed');
+                const imageContainer = document.getElementById('image-container');
 
-                // Resetar mensagens e ícones
+                // Resetar estado visual
                 errorMessage.style.display = 'none';
                 resultIcon.style.display = 'none';
                 resultIcon.className = '';
+                plateNumberEl.style.display = 'none';
+                processingDots.style.display = 'none';
+                img.style.display = 'none';
+                imageContainer.style.display = 'none';
+                plateImageContainer.style.display = 'none';
+                videoFeed.style.display = 'none';
 
-                // Atualizar a mensagem de status
                 messageEl.innerText = data.message;
 
-                // Lógica para exibir a imagem e os ícones
-                if (data.status === "processing" || data.status === "recognition_processing" || data.status === "image_captured") {
-                    // Exibir a imagem capturada
-                    if (data.image_url) {
-                        img.src = data.image_url + '?t=' + new Date().getTime(); // Evita cache
-                        img.style.display = 'block';
-                    }
-                    // Exibir os três pontinhos
+                if (data.vehicle_plate) {
+                    plateNumberEl.style.display = 'block';
+                    plateNumberEl.innerText = "Placa: " + data.vehicle_plate;
+                }
+
+                if (data.status === "capturing_plate") {
+                    videoFeed.src = '/video_feed';
+                    videoFeed.style.display = 'block';
+                } else if (data.status === "vehicle_registered") {
                     processingDots.style.display = 'flex';
-                    // Ocultar o ícone de resultado
-                    resultIcon.style.display = 'none';
-                } else if (data.status === "approved") {
-                    // Exibir a imagem capturada
+                } else if (data.status === "capturing_driver") {
+                    videoFeed.src = '/video_feed';
+                    videoFeed.style.display = 'block';
+                } else if (data.status === "driver_image_captured" || data.status === "recognition_processing") {
                     if (data.image_url) {
-                        img.src = data.image_url + '?t=' + new Date().getTime(); // Evita cache
+                        img.src = data.image_url + '?t=' + new Date().getTime();
                         img.style.display = 'block';
+                        imageContainer.style.display = 'flex';
                     }
-                    // Ocultar os três pontinhos
-                    processingDots.style.display = 'none';
-                    // Exibir o ícone verde de aprovação
+                    processingDots.style.display = 'flex';
+                } else if (data.status === "vehicle_not_registered" || data.status === "no_plate_detected") {
+                    resultIcon.style.display = 'block';
+                    resultIcon.className = 'denied';
+                } else if (data.status === "approved") {
+                    if (data.image_url) {
+                        img.src = data.image_url + '?t=' + new Date().getTime();
+                        img.style.display = 'block';
+                        imageContainer.style.display = 'flex';
+                    }
                     resultIcon.style.display = 'block';
                     resultIcon.className = 'approved';
                 } else if (data.status === "denied") {
-                    // Exibir a imagem capturada
                     if (data.image_url) {
-                        img.src = data.image_url + '?t=' + new Date().getTime(); // Evita cache
+                        img.src = data.image_url + '?t=' + new Date().getTime();
                         img.style.display = 'block';
+                        imageContainer.style.display = 'flex';
                     }
-                    // Ocultar os três pontinhos
-                    processingDots.style.display = 'none';
-                    // Exibir o ícone vermelho de negação
                     resultIcon.style.display = 'block';
                     resultIcon.className = 'denied';
                 } else if (data.status === "error") {
-                    // Ocultar a imagem e os ícones
-                    img.style.display = 'none';
-                    processingDots.style.display = 'none';
-                    resultIcon.style.display = 'none';
-                    // Exibir a mensagem de erro
                     errorMessage.innerText = data.message;
                     errorMessage.style.display = 'block';
-                } else {
-                    // Estado idle
-                    // Ocultar a imagem e os ícones
-                    img.style.display = 'none';
-                    processingDots.style.display = 'none';
-                    resultIcon.style.display = 'none';
                 }
             })
             .catch(error => console.error('Erro:', error));
         }
 
-        // Chamar updateStatus imediatamente e depois em intervalos regulares
+        // Atualiza o status a cada segundo
         updateStatus();
         setInterval(updateStatus, 1000);
     </script>

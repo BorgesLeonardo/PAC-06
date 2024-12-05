@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Registrar Veículo</title>
+    <style>
+        body, html {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+        }
+        form {
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        input[type="text"] {
+            width: 300px;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        input[type="file"] {
+            margin-bottom: 20px;
+        }
+        input[type="submit"] {
+            width: 100%;
+            padding: 10px;
+            background-color: #3498db;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+        input[type="submit"]:hover {
+            background-color: #2980b9;
+        }
+        #message {
+            margin-top: 20px;
+            font-size: 18px;
+            color: green;
+            text-align: center;
+        }
+        #error {
+            margin-top: 20px;
+            font-size: 18px;
+            color: red;
+            text-align: center;
+        }
+        #back-button {
+            margin-top: 20px;
+            text-decoration: none;
+            color: #3498db;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <form method="POST" action="/register" enctype="multipart/form-data">
+        <h2>Registrar Veículo</h2>
+        <input type="text" name="license_plate" placeholder="Placa do Veículo" required>
+        <input type="text" name="user_name" placeholder="Nome do Motorista" required>
+        <input type="file" name="user_image" accept="image/*" required>
+        <input type="submit" value="Registrar">
+        {% if message %}
+            <div id="message">{{ message }}</div>
+        {% endif %}
+        {% if error %}
+            <div id="error">{{ error }}</div>
+        {% endif %}
+        <a id="back-button" href="/">Voltar</a>
+    </form>
+</body>
+</html>
